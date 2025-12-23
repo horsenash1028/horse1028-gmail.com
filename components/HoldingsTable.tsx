@@ -3,7 +3,7 @@ import { Holding, AssetType } from '../types';
 
 interface HoldingsTableProps {
   holdings: Holding[];
-  onUpdate: (index: number, field: 'currentPrice' | 'currentValue' | 'cost', value: number) => void;
+  onUpdate: (index: number, field: 'shares' | 'currentPrice' | 'currentValue' | 'cost' | 'avgPrice', value: number) => void;
 }
 
 export const HoldingsTable: React.FC<HoldingsTableProps> = ({ holdings, onUpdate }) => {
@@ -14,7 +14,7 @@ export const HoldingsTable: React.FC<HoldingsTableProps> = ({ holdings, onUpdate
       <div className="p-6 border-b border-slate-100 flex justify-between items-center">
         <h3 className="text-lg font-bold text-slate-800">持股明細 (Holdings)</h3>
         <span className="text-xs text-slate-400 bg-slate-50 px-2 py-1 rounded">
-          * 可編輯欄位：持有現值、持有成本
+          * 可編輯欄位：股數、現價、均價、持有現值、持有成本
         </span>
       </div>
       <div className="overflow-x-auto">
@@ -23,7 +23,9 @@ export const HoldingsTable: React.FC<HoldingsTableProps> = ({ holdings, onUpdate
             <tr>
               <th className="px-6 py-4">名稱</th>
               <th className="px-6 py-4">類型</th>
+              <th className="px-6 py-4 text-right">股數</th>
               <th className="px-6 py-4 text-right">現價</th>
+              <th className="px-6 py-4 text-right">均價</th>
               <th className="px-6 py-4 text-right">持有現值</th>
               <th className="px-6 py-4 text-right">持有成本</th>
               <th className="px-6 py-4 text-right">總損益</th>
@@ -43,10 +45,37 @@ export const HoldingsTable: React.FC<HoldingsTableProps> = ({ holdings, onUpdate
                     {item.type === AssetType.Stock ? '股票' : '債券'}
                   </span>
                 </td>
+
+                {/* Editable Shares */}
+                <td className="px-6 py-4 text-right">
+                   <input 
+                    type="number"
+                    value={item.shares}
+                    onChange={(e) => onUpdate(index, 'shares', parseFloat(e.target.value) || 0)}
+                    className="w-24 text-right px-2 py-1 border border-slate-200 rounded text-slate-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all bg-white hover:border-slate-300"
+                  />
+                </td>
                 
-                {/* Read-only Current Price */}
-                <td className="px-6 py-4 text-right text-slate-600">
-                  {item.currentPrice.toFixed(2)}
+                {/* Editable Current Price */}
+                <td className="px-6 py-4 text-right">
+                   <input 
+                    type="number"
+                    step="0.01"
+                    value={item.currentPrice}
+                    onChange={(e) => onUpdate(index, 'currentPrice', parseFloat(e.target.value) || 0)}
+                    className="w-20 text-right px-2 py-1 border border-slate-200 rounded text-slate-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all bg-white hover:border-slate-300"
+                  />
+                </td>
+
+                {/* Editable Avg Price */}
+                <td className="px-6 py-4 text-right">
+                  <input 
+                    type="number"
+                    step="0.01"
+                    value={item.avgPrice}
+                    onChange={(e) => onUpdate(index, 'avgPrice', parseFloat(e.target.value) || 0)}
+                    className="w-20 text-right px-2 py-1 border border-slate-200 rounded text-slate-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all bg-white hover:border-slate-300"
+                  />
                 </td>
 
                 {/* Editable Current Value */}

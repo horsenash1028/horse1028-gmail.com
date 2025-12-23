@@ -16,6 +16,13 @@ export interface Holding {
   type: AssetType;
 }
 
+export interface DividendRecord {
+  id: string;
+  date: string;
+  stockName: string;
+  amount: number;
+}
+
 export interface PortfolioSummary {
   totalAssets: number;
   totalInvested: number;
@@ -32,4 +39,11 @@ export interface RebalanceTarget {
   targetReserveCash: number;    // 1,000,000
   stockRatio: number;           // 0.6
   bondRatio: number;            // 0.4
+}
+
+export interface BackupData {
+  version: number;
+  timestamp: string;
+  holdings: Holding[];
+  dividends: DividendRecord[];
 }

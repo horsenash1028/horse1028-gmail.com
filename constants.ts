@@ -1,4 +1,4 @@
-import { AssetType } from './types';
+import { AssetType, DividendRecord } from './types';
 
 // The raw CSV data provided by the user
 export const RAW_CSV_DATA = `股票名稱,股數,總損益,交易別,成交均價,市價,現值,付出成本,預估損益,報酬率,幣別
@@ -26,3 +26,11 @@ export const INITIAL_CONFIG = {
   stockRatio: 0.6,
   bondRatio: 0.4,
 };
+
+// Initial Sample Dividends
+export const INITIAL_DIVIDENDS: DividendRecord[] = [
+  { id: '1', date: '2023-11-15', stockName: '元大高股息', amount: 8400 },
+  { id: '2', date: '2023-12-20', stockName: '群益台灣精選高息', amount: 12500 },
+  { id: '3', date: '2024-01-18', stockName: '元大美債20年', amount: 3200 },
+  { id: '4', date: '2024-02-22', stockName: '元大台灣50', amount: 15000 },
+];
