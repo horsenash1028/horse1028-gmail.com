@@ -1,0 +1,5 @@
+{
+  "name": "SmartPortfolio TW",
+  "description": "A comprehensive investment dashboard tailored for Taiwan ETF portfolios. Visualizes asset allocation, calculates rebalancing requirements for a 60/40 split, and tracks performance against total asset goals.",
+  "requestFramePermissions": []
+}
