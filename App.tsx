@@ -12,6 +12,22 @@ import { HoldingsTable } from './components/HoldingsTable';
 import { DividendDashboard } from './components/DividendDashboard';
 
 const App: React.FC = () => {
+  // Constants for calculation
+  // Cost = (Shares * AvgPrice) + (Shares * AvgPrice * 0.1425% * 28%)
+  // Value (Stock) = (Shares * CurrentPrice) - (Shares * CurrentPrice * 0.1425% * 28%) - (Shares * CurrentPrice * 0.1%)
+  // Value (Bond)  = (Shares * CurrentPrice) - (Shares * CurrentPrice * 0.1425% * 28%)  <-- No Tax
+  const FEE_RATE = 0.001425;
+  const DISCOUNT = 0.28;
+  const STOCK_TAX_RATE = 0.001; // 0.1% for stocks
+  
+  const BUY_COST_FACTOR = 1 + (FEE_RATE * DISCOUNT);
+
+  // Helper to determine Sell Factor based on Asset Type
+  const getSellValFactor = (type: AssetType) => {
+    const tax = type === AssetType.Bond ? 0 : STOCK_TAX_RATE;
+    return 1 - (FEE_RATE * DISCOUNT) - tax;
+  };
+
   // 1. Initialize State from parsed Data
   const [holdings, setHoldings] = useState<Holding[]>([]);
   const [dividends, setDividends] = useState<DividendRecord[]>(INITIAL_DIVIDENDS);
@@ -26,27 +42,29 @@ const App: React.FC = () => {
     setHoldings(prev => {
       const newHoldings = [...prev];
       const h = { ...newHoldings[index] };
+      
+      const sellFactor = getSellValFactor(h.type);
 
       // Update the specific field and dependent fields
       if (field === 'shares') {
         h.shares = value;
-        // When shares change, recalculate values based on current/avg price
-        h.currentValue = Math.round(value * h.currentPrice);
-        h.cost = Math.round(value * h.avgPrice);
+        // Recalculate based on new formulas
+        h.currentValue = Math.round(value * h.currentPrice * sellFactor);
+        h.cost = Math.round(value * h.avgPrice * BUY_COST_FACTOR);
       } else if (field === 'currentPrice') {
         h.currentPrice = value;
-        h.currentValue = Math.round(h.shares * value);
+        h.currentValue = Math.round(h.shares * value * sellFactor);
       } else if (field === 'currentValue') {
         h.currentValue = value;
-        h.currentPrice = h.shares > 0 ? value / h.shares : 0;
+        // Reverse calc: Price = Value / (Shares * Factor)
+        h.currentPrice = h.shares > 0 ? value / (h.shares * sellFactor) : 0;
       } else if (field === 'avgPrice') {
-        // If Avg Price changes, Cost changes
         h.avgPrice = value;
-        h.cost = Math.round(h.shares * value);
+        h.cost = Math.round(h.shares * value * BUY_COST_FACTOR);
       } else if (field === 'cost') {
-        // If Cost changes, Avg Price changes
         h.cost = value;
-        h.avgPrice = h.shares > 0 ? value / h.shares : 0;
+        // Reverse calc: AvgPrice = Cost / (Shares * Factor)
+        h.avgPrice = h.shares > 0 ? value / (h.shares * BUY_COST_FACTOR) : 0;
       }
 
       // Always recalculate Profit/Loss and Return Rate
@@ -56,7 +74,7 @@ const App: React.FC = () => {
       newHoldings[index] = h;
       return newHoldings;
     });
-  }, []);
+  }, [BUY_COST_FACTOR]);
 
   const handleAddDividend = (record: Omit<DividendRecord, 'id'>) => {
     const newRecord: DividendRecord = {

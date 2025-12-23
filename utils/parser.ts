@@ -76,6 +76,18 @@ export const parseBackupCSV = (csv: string): { holdings: Holding[], dividends: D
   const holdings: Holding[] = [];
   const dividends: DividendRecord[] = [];
   
+  // Constants for calc (Sync with App.tsx)
+  const FEE_RATE = 0.001425;
+  const DISCOUNT = 0.28;
+  const STOCK_TAX_RATE = 0.001;
+  
+  const BUY_COST_FACTOR = 1 + (FEE_RATE * DISCOUNT);
+  
+  const getSellValFactor = (type: AssetType) => {
+    const tax = type === AssetType.Bond ? 0 : STOCK_TAX_RATE;
+    return 1 - (FEE_RATE * DISCOUNT) - tax;
+  };
+  
   let currentSection = '';
 
   // Helper to parse CSV line
@@ -118,10 +130,13 @@ export const parseBackupCSV = (csv: string): { holdings: Holding[], dividends: D
        const shares = parseFloat(sharesStr);
        const avgPrice = parseFloat(avgPriceStr);
        const currentPrice = parseFloat(currentPriceStr);
+       const type = typeStr as AssetType;
        
-       // Re-calculate derived fields to ensure consistency
-       const cost = Math.round(shares * avgPrice);
-       const currentValue = Math.round(shares * currentPrice);
+       const sellFactor = getSellValFactor(type);
+
+       // Re-calculate derived fields to ensure consistency with App logic
+       const cost = Math.round(shares * avgPrice * BUY_COST_FACTOR);
+       const currentValue = Math.round(shares * currentPrice * sellFactor);
        const totalProfitLoss = currentValue - cost;
        const returnRate = cost !== 0 ? (totalProfitLoss / cost) * 100 : 0;
        
@@ -130,7 +145,7 @@ export const parseBackupCSV = (csv: string): { holdings: Holding[], dividends: D
          shares,
          avgPrice,
          currentPrice,
-         type: typeStr as AssetType,
+         type,
          cost,
          currentValue,
          totalProfitLoss,
